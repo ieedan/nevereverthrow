@@ -41,10 +41,12 @@ export class ResultAsync<T, E> implements PromiseLike<Result<T, E>> {
 	static fromPromise<T, E>(
 		promise: Promise<T>,
 		errorFn: (e: unknown) => E,
+		finallyFn?: () => void,
 	): ResultAsync<T, E> {
 		const newPromise = promise
 			.then((value: T) => new Ok<T, E>(value))
-			.catch((e) => new Err<T, E>(errorFn(e)));
+			.catch((e) => new Err<T, E>(errorFn(e)))
+			.finally(finallyFn);
 
 		return new ResultAsync(newPromise);
 	}
@@ -53,6 +55,7 @@ export class ResultAsync<T, E> implements PromiseLike<Result<T, E>> {
 	static fromThrowable<A extends readonly any[], R, E>(
 		fn: (...args: A) => Promise<R>,
 		errorFn?: (err: unknown) => E,
+		finallyFn?: () => void,
 	): (...args: A) => ResultAsync<R, E> {
 		return (...args) => {
 			return new ResultAsync(
@@ -61,6 +64,8 @@ export class ResultAsync<T, E> implements PromiseLike<Result<T, E>> {
 						return new Ok(await fn(...args));
 					} catch (error) {
 						return new Err(errorFn ? errorFn(error) : error);
+					} finally {
+						finallyFn?.();
 					}
 				})(),
 			);
@@ -198,6 +203,10 @@ export class ResultAsync<T, E> implements PromiseLike<Result<T, E>> {
 		);
 	}
 
+	finally(f: () => void): ResultAsync<T, E> {
+		return new ResultAsync(this._promise.finally(f));
+	}
+
 	orElse<R extends Result<unknown, unknown>>(
 		f: (e: E) => R,
 	): ResultAsync<InferOkTypes<R> | T, InferErrTypes<R>>;
@@ -220,11 +229,11 @@ export class ResultAsync<T, E> implements PromiseLike<Result<T, E>> {
 		);
 	}
 
-	match<A, B = A>(ok: (t: T) => A, _err: (e: E) => B): Promise<A | B> {
+	async match<A, B = A>(ok: (t: T) => A, _err: (e: E) => B): Promise<A | B> {
 		return this._promise.then((res) => res.match(ok, _err));
 	}
 
-	unwrapOr<A>(t: A): Promise<T | A> {
+	async unwrapOr<A>(t: A): Promise<T | A> {
 		return this._promise.then((res) => res.unwrapOr(t));
 	}
 

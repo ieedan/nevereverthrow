@@ -66,6 +66,38 @@ describe("Result.Ok", () => {
 		expect(mapErrorFunc).not.toHaveBeenCalledTimes(1);
 	});
 
+	describe("finally", () => {
+		it("Calls the passed function", async () => {
+			const passedFn = vitest.fn(() => {});
+			const okVal = okAsync(12).finally(passedFn);
+
+			await okVal;
+
+			expect(passedFn).toHaveBeenCalledTimes(1);
+		});
+
+		it("Calls the passed function on an Err", async () => {
+			const passedFn = vitest.fn(() => {});
+			const errVal = errAsync(12).finally(passedFn);
+
+			await errVal;
+
+			expect(passedFn).toHaveBeenCalledTimes(1);
+		});
+
+		it("Calls the passed function on an Err", async () => {
+			const passedFn = vitest.fn(() => {});
+			const errVal = ResultAsync.fromPromise(
+				Promise.reject("error"),
+				() => "error",
+			).finally(passedFn);
+
+			await errVal;
+
+			expect(passedFn).toHaveBeenCalledTimes(1);
+		});
+	});
+
 	describe("andThen", () => {
 		it("Maps to an Ok", () => {
 			const okVal = ok(12);
