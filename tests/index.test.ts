@@ -67,34 +67,49 @@ describe("Result.Ok", () => {
 	});
 
 	describe("finally", () => {
+		it("constructs a new ResultAsync with the finally function", async () => {
+			const finallyFn = vitest.fn(() => {});
+			const resultPromise = ResultAsync.fromPromise(
+				Promise.resolve(12),
+				() => "error",
+				finallyFn,
+			);
+
+			const result = await resultPromise;
+
+			expect(finallyFn).toHaveBeenCalledTimes(1);
+			expect(result.isOk()).toBe(true);
+			expect(result._unsafeUnwrap()).toBe(12);
+		});
+
 		it("Calls the passed function", async () => {
-			const passedFn = vitest.fn(() => {});
-			const okVal = okAsync(12).finally(passedFn);
+			const finallyFn = vitest.fn(() => {});
+			const okVal = okAsync(12).finally(finallyFn);
 
 			await okVal;
 
-			expect(passedFn).toHaveBeenCalledTimes(1);
+			expect(finallyFn).toHaveBeenCalledTimes(1);
 		});
 
 		it("Calls the passed function on an Err", async () => {
-			const passedFn = vitest.fn(() => {});
-			const errVal = errAsync(12).finally(passedFn);
+			const finallyFn = vitest.fn(() => {});
+			const errVal = errAsync(12).finally(finallyFn);
 
 			await errVal;
 
-			expect(passedFn).toHaveBeenCalledTimes(1);
+			expect(finallyFn).toHaveBeenCalledTimes(1);
 		});
 
 		it("Calls the passed function on an Err", async () => {
-			const passedFn = vitest.fn(() => {});
+			const finallyFn = vitest.fn(() => {});
 			const errVal = ResultAsync.fromPromise(
 				Promise.reject("error"),
 				() => "error",
-			).finally(passedFn);
+			).finally(finallyFn);
 
 			await errVal;
 
-			expect(passedFn).toHaveBeenCalledTimes(1);
+			expect(finallyFn).toHaveBeenCalledTimes(1);
 		});
 	});
 

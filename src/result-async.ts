@@ -37,6 +37,7 @@ export class ResultAsync<T, E> implements PromiseLike<Result<T, E>> {
 	static fromPromise<T, E>(
 		promise: PromiseLike<T>,
 		errorFn: (e: unknown) => E,
+		finallyFn?: () => void,
 	): ResultAsync<T, E>;
 	static fromPromise<T, E>(
 		promise: Promise<T>,
