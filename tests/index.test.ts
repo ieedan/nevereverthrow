@@ -70,6 +70,53 @@ describe("Result.Ok", () => {
 		expect(mapErrorFunc).not.toHaveBeenCalledTimes(1);
 	});
 
+	describe("finally", () => {
+		it("constructs a new ResultAsync with the finally function", async () => {
+			const finallyFn = vitest.fn(() => {});
+			const resultPromise = ResultAsync.fromPromise(
+				Promise.resolve(12),
+				() => "error",
+				finallyFn,
+			);
+
+			const result = await resultPromise;
+
+			expect(finallyFn).toHaveBeenCalledTimes(1);
+			expect(result.isOk()).toBe(true);
+			expect(result._unsafeUnwrap()).toBe(12);
+		});
+
+		it("Calls the passed function", async () => {
+			const finallyFn = vitest.fn(() => {});
+			const okVal = okAsync(12).finally(finallyFn);
+
+			await okVal;
+
+			expect(finallyFn).toHaveBeenCalledTimes(1);
+		});
+
+		it("Calls the passed function on an Err", async () => {
+			const finallyFn = vitest.fn(() => {});
+			const errVal = errAsync(12).finally(finallyFn);
+
+			await errVal;
+
+			expect(finallyFn).toHaveBeenCalledTimes(1);
+		});
+
+		it("Calls the passed function on an Err", async () => {
+			const finallyFn = vitest.fn(() => {});
+			const errVal = ResultAsync.fromPromise(
+				Promise.reject("error"),
+				() => "error",
+			).finally(finallyFn);
+
+			await errVal;
+
+			expect(finallyFn).toHaveBeenCalledTimes(1);
+		});
+	});
+
 	describe("andThen", () => {
 		it("Maps to an Ok", () => {
 			const okVal = ok(12);

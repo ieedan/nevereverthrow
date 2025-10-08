@@ -58,7 +58,7 @@ export async function mutation(): Promise<Result<number, string>> {
 
 import { Result, ResultAsync, ResultJson } from "nevereverthrow";
 
-async function callClient<T>(fn: () => Promise<T>): Promise<Result<T, string>> {
+function callClient<T>(fn: () => Promise<T>): ResultAsync<T, string> {
 	return ResultAsync.fromPromise(
 		(async () => {
 			const res = await fn();
@@ -86,6 +86,29 @@ export async function callMutation() {
 		// show this error to the user
 		return;
 	}
+}
+```
+
+### `ResultAsync.finally`
+
+`ResultAsync.finally` is a method that allows you to run a function after the `ResultAsync` is resolved as you traditionally would with `Promise.finally`.
+
+```ts
+import { ResultAsync } from "nevereverthrow";
+
+async function callClient<T>(fn: () => Promise<T>): ResultAsync<T, string> {
+	return ResultAsync.fromPromise(
+		(async () => {
+			// ...
+		})(),
+		(e) => `${e}`,
+		() => console.log("finally") // declare in fromPromise
+	);
+}
+
+export async function callMutation() {
+	const posthog = initPosthog();
+	const result = await callClient(mutation).finally(() => posthog.shutdown()); // call finally method on `ResultAsync`
 }
 ```
 
