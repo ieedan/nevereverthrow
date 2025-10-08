@@ -1,5 +1,11 @@
 # nevereverthrow
 
+## 0.3.0
+
+### Minor Changes
+
+- feat: Add `.expect` and `.expectErr` apis. ([#7](https://github.com/ieedan/nevereverthrow/pull/7))
+
 ## 0.2.1
 
 ### Patch Changes
